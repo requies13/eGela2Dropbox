@@ -5,8 +5,8 @@ from socket import AF_INET, socket, SOCK_STREAM
 import json
 import helper
 
-app_key = ''
-app_secret = ''
+app_key = '2lsfvvkg2jwwva6'
+app_secret = 'a0yuz0jqtrso1l4'
 server_addr = "localhost"
 server_port = 8070
 redirect_uri = "http://" + server_addr + ":" + str(server_port)
@@ -22,7 +22,7 @@ class Dropbox:
         self._root = root
 
     def local_server(self):
-        # por el puerto 8090 esta escuchando el servidor que generamos
+        # por el puerto 8070 esta escuchando el servidor que generamos
         server_socket = socket(AF_INET, SOCK_STREAM)
         server_socket.bind((server_addr, server_port))
         server_socket.listen(1)
@@ -59,6 +59,62 @@ class Dropbox:
         # PARA LA OBTENCION DEL ACCESS TOKEN
         #############################################
 
+        print("\nStep 1.- Send a request to DropBox's OAuth 2.0 server")
+
+        uri = "https://www.dropbox.com/oauth2/authorize"
+        datos = {'client_id': app_key,
+                 'redirect_uri': redirect_uri,
+                 'response_type': 'code',
+                 }
+        datos_encoded = urllib.parse.urlencode(datos)
+
+        print("\tOpenning browser...")
+        webbrowser.open_new((uri + '?' + datos_encoded))
+
+
+        # Crear servidor local que escucha por el puerto 8070
+        server_socket = socket(AF_INET, SOCK_STREAM)
+        server_socket.bind(('localHost', 8070))
+        server_socket.listen(1)
+        print("\tLocal server listening on port 8070")
+        # Recibir la solicitudes 302 del navegador
+        client_connection, client_address = server_socket.accept()
+        peticion = client_connection.recv(1024)
+        print("\tRequest from the browser received at local server:")
+        # Buscar en la petición el "auth_code"
+        primera_linea = peticion.decode('UTF8').split('\n')[0]
+        print(primera_linea)
+        aux_auth_code = primera_linea.split(' ')[1]
+        auth_code = aux_auth_code[7:].split('&')[0]
+        print("\tauth_code:" + auth_code)
+        # Devolver una respuesta al usuario
+        http_response = "HTTP/1.1 200 OK\r\n\r\n" \
+                        "<html>" \
+                        "<head><title>Prueba</title></head>" \
+                        "<body>The authentication flow has completed. Close this window.</body>" \
+                        "</html>"
+        client_connection.sendall(http_response.encode(encoding="utf-8"))
+        client_connection.close()
+        server_socket.close()
+
+        ###################################################################################
+        # ACCESS_TOKEN: Obtener el TOKEN https://www.api.dropboxapi.com/1/oauth2/token #
+        ###################################################################################
+        params = {'code': auth_code,
+                  'grant_type': 'authorization_code',
+                  'client_id': app_key,
+                  'client_secret': app_secret,
+                  'redirect_uri': redirect_uri}
+        cabeceras = {'User-Agent': 'Python Client',
+                     'Content-Type': 'application/x-www-form-urlencoded'}
+        uri = 'https://api.dropboxapi.com/oauth2/token'
+        respuesta = requests.post(uri, headers=cabeceras, data=params)
+        print(respuesta.status_code)
+        json_respuesta = json.loads(respuesta.content)
+        access_token = json_respuesta['access_token']
+        print("Access_Token:" + access_token)
+
+        self._access_token = access_token
         self._root.destroy()
 
     def list_folder(self, msg_listbox):
