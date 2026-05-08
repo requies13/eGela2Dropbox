@@ -30,7 +30,7 @@ class Dropbox:
         server_socket.listen(1)
         print("\tLocal server listening on port " + str(server_port))
 
-        # recibe la redireccio 302 del navegador
+        # recibe la redireccion 302 del navegador
         client_connection, client_address = server_socket.accept()
         peticion = client_connection.recv(1024)
         print("\tRequest from the browser received at local server:")
@@ -163,24 +163,118 @@ class Dropbox:
         print("/upload")
         uri = 'https://content.dropboxapi.com/2/files/upload'
         # https://www.dropbox.com/developers/documentation/http/documentation#files-upload
-        #############################################
-        # RELLENAR CON CODIGO DE LA PETICION HTTP
-        # Y PROCESAMIENTO DE LA RESPUESTA HTTP
-        #############################################
+
+        self._path = posixpath.normpath(self._path).replace("\\", "/")
+        if self._path in ['.', '/.']:
+            self._path = "/"
+
+        # 2. Construir la ruta completa INCLUYENDO el nombre del archivo
+        path_dropbox = f"{self._path}/{file_path}".replace("//", "/")
+
+        # 3. Configuración de la ruta para Dropbox (la raíz debe ser "")
+        if not path_dropbox.startswith("/"):
+            path_dropbox = "/" + path_dropbox
+
+        # 4. Configuración de cabeceras y datos
+        datos = {
+            "autorename": False,
+            "mode": "add",
+            "path": path_dropbox
+        }
+
+        cabeceras = {
+            'Authorization': 'Bearer ' + self._access_token,
+            'Content-Type': 'application/octet-stream',
+            'Dropbox-API-Arg': json.dumps(datos)
+        }
+
+        # 5. Realizar la petición POST
+        respuesta = requests.post(uri, headers=cabeceras, data=file_data)
+
+        # 6. Procesar la respuesta
+        if respuesta.status_code == 200:
+            contenido_json = respuesta.json()
+            print("\t##### Archivo transferido con éxito #####")
+        else:
+            print(f"\t##### Error {respuesta.status_code} al transferir el archivo #####")
+            print(respuesta.text)
+
 
     def delete_file(self, file_path):
         print("/delete_file")
         uri = 'https://api.dropboxapi.com/2/files/delete_v2'
         # https://www.dropbox.com/developers/documentation/http/documentation#files-delete
-        #############################################
-        # RELLENAR CON CODIGO DE LA PETICION HTTP
-        # Y PROCESAMIENTO DE LA RESPUESTA HTTP
-        #############################################
+
+        self._path = posixpath.normpath(self._path).replace("\\", "/")
+        if self._path in ['.', '/.']:
+            self._path = "/"
+
+        # 2. Construir la ruta completa INCLUYENDO el nombre del archivo
+        path_dropbox = f"{self._path}/{file_path}".replace("//", "/")
+
+        # 3. Configuración de la ruta para Dropbox (la raíz debe ser "")
+        if not path_dropbox.startswith("/"):
+            path_dropbox = "/" + path_dropbox
+
+        # 4. Configuración de cabeceras y datos
+        datos = {
+            "path": path_dropbox
+        }
+
+        cabeceras = {
+            'Authorization': 'Bearer ' + self._access_token,
+            'Content-Type': 'application/json'
+        }
+
+        # 5. Realizar la petición POST
+        respuesta = requests.post(uri, headers=cabeceras, data=json.dumps(datos))
+
+        # 6. Procesar la respuesta
+        if respuesta.status_code == 200:
+            contenido_json = respuesta.json()
+            print("\t##### Archivo eliminado con éxito #####")
+        else:
+            print(f"\t##### Error {respuesta.status_code} al eliminar el archivo #####")
+            print(respuesta.text)
 
     def create_folder(self, path):
         print("/create_folder")
+        uri = 'https://api.dropboxapi.com/2/files/create_folder_v2'
        # https://www.dropbox.com/developers/documentation/http/documentation#files-create_folder
         #############################################
         # RELLENAR CON CODIGO DE LA PETICION HTTP
         # Y PROCESAMIENTO DE LA RESPUESTA HTTP
         #############################################
+
+        self._path = posixpath.normpath(self._path).replace("\\", "/")
+        if self._path in ['.', '/.']:
+            self._path = "/"
+
+        # 2. Construir la ruta completa INCLUYENDO el nombre del archivo
+        path_dropbox = f"{self._path}/{path}".replace("//", "/")
+
+        # 3. Configuración de la ruta para Dropbox (la raíz debe ser "")
+        if not path_dropbox.startswith("/"):
+            path_dropbox = "/" + path_dropbox
+
+        # 4. Configuración de cabeceras y datos
+        datos = {
+            "autorename": False,
+            "path": path_dropbox
+        }
+
+        cabeceras = {
+            'Authorization': 'Bearer ' + self._access_token,
+            'Content-Type': 'application/json',
+        }
+
+        # 5. Realizar la petición POST
+        respuesta = requests.post(uri, headers=cabeceras, data=json.dumps(datos))
+
+        # 6. Procesar la respuesta
+        if respuesta.status_code == 200:
+            contenido_json = respuesta.json()
+            print("\t##### Carpeta creada con éxito #####")
+        else:
+            print(f"\t##### Error {respuesta.status_code} al crear la carpeta #####")
+            print(respuesta.text)

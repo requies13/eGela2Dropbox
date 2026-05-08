@@ -169,11 +169,7 @@ class eGela:
         progress_var.set(progress)
         progress_bar.update()
 
-        print("\n##### 4. PETICION (Página principal de la asignatura en eGela) #####")
-        #############################################
-        # RELLENAR CON CODIGO DE LA PETICION HTTP
-        # Y PROCESAMIENTO DE LA RESPUESTA HTTP
-        #############################################
+        print("\n##### 5. PETICION (Página principal de la asignatura en eGela) #####")
         metodo = 'GET'
         uri = self._curso
         cabeceras = {}
