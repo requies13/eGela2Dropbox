@@ -161,13 +161,11 @@ class Dropbox:
 
     def transfer_file(self, file_path, file_data):
         print("/upload")
+        print("Subiendo archivo " + file_path)
         uri = 'https://content.dropboxapi.com/2/files/upload'
         # https://www.dropbox.com/developers/documentation/http/documentation#files-upload
-        self._path = posixpath.normpath(self._path).replace("\\", "/")
-        if self._path in ['.', '/.']:
-            self._path = "/"
         # 2. Construir la ruta completa INCLUYENDO el nombre del archivo
-        path_dropbox = f"{self._path}{file_path}".replace("//", "/")
+        path_dropbox = f"{file_path}"
         # 3. Configuración de la ruta para Dropbox (la raíz debe ser "")
         if not path_dropbox.startswith("/"):
             path_dropbox = "/" + path_dropbox
@@ -198,15 +196,14 @@ class Dropbox:
 
     def delete_file(self, file_path):
         print("/delete_file")
+        print("Borrando " + file_path)
+        uri = 'https://api.dropboxapi.com/2/files/delete'
         uri = 'https://api.dropboxapi.com/2/files/delete_v2'
         # https://www.dropbox.com/developers/documentation/http/documentation#files-delete
 
-        self._path = posixpath.normpath(self._path).replace("\\", "/")
-        if self._path in ['.', '/.']:
-            self._path = "/"
 
         # 2. Construir la ruta completa INCLUYENDO el nombre del archivo
-        path_dropbox = f"{self._path}{file_path}".replace("//", "/")
+        path_dropbox = f"{file_path}".replace("//", "/")
 
         # 3. Configuración de la ruta para Dropbox (la raíz debe ser "")
         if not path_dropbox.startswith("/"):
@@ -235,24 +232,18 @@ class Dropbox:
 
     def create_folder(self, path):
         print("/create_folder")
+        print("Creando directorio " + path)
         uri = 'https://api.dropboxapi.com/2/files/create_folder_v2'
        # https://www.dropbox.com/developers/documentation/http/documentation#files-create_folder
         #############################################
         # RELLENAR CON CODIGO DE LA PETICION HTTP
         # Y PROCESAMIENTO DE LA RESPUESTA HTTP
         #############################################
-
-        self._path = posixpath.normpath(self._path).replace("\\", "/")
-        if self._path in ['.', '/.']:
-            self._path = "/"
-
         # 2. Construir la ruta completa INCLUYENDO el nombre del archivo
-        path_dropbox = f"{self._path}{path}".replace("//", "/")
-
+        path_dropbox = f"{path}".replace("//", "/")
         # 3. Configuración de la ruta para Dropbox (la raíz debe ser "")
         if not path_dropbox.startswith("/"):
             path_dropbox = "/" + path_dropbox
-
         # 4. Configuración de cabeceras y datos
         datos = {
             "autorename": False,
