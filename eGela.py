@@ -268,7 +268,6 @@ class eGela:
 
         popup.destroy()
         print(self._refs)
-        sys.exit(-1) #TODO Lo he dejado así pa que veáis que funciona. Lógicamente hay que quitarlo y seguir haciendo
         return self._refs
 
     def get_pdf(self, selection):
@@ -279,4 +278,28 @@ class eGela:
         # Y PROCESAMIENTO DE LA RESPUESTA HTTP
         #############################################
 
+        # 1. Obtener el nombre y el enlace del PDF usando el índice 'selection'
+        pdf_name = self._refs[selection]['pdf_name']
+        pdf_link = self._refs[selection]['pdf_link']
+
+        # 2. Preparar los datos de la petición HTTP
+        metodo = 'GET'
+        uri = pdf_link
+        cabeceras = {
+            'Host': uri.split('//')[1].split('/')[0],
+            'Cookie': self._cookie
+        }
+
+        # 3. Realizar la petición HTTP para descargar el binario
+        respuesta = requests.request(metodo, uri, headers=cabeceras, allow_redirects=False)
+
+        # 4. Comprobar que ha ido bien (Código 200 OK) y extraer el contenido
+        if respuesta.status_code == 200:
+            pdf_content = respuesta.content
+            print(f"\t##### {pdf_name} descargado correctamente #####")
+        else:
+            pdf_content = b""  # Si falla, devolvemos bytes vacíos
+            print(f"\t##### Error al descargar {pdf_name}: Código {respuesta.status_code} #####")
+
+        # 5. Devolver la tupla con el nombre y el contenido
         return pdf_name, pdf_content

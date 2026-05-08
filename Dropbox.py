@@ -126,6 +126,29 @@ class Dropbox:
         # Y PROCESAMIENTO DE LA RESPUESTA HTTP
         #############################################
 
+        # cabeceras = {
+        #     'Authorization': 'Bearer ' + self._access_token,
+        #     'Content-Type': 'application/json'
+        # }
+        #
+        # path_dropbox = "" if self._path == "/" else self._path
+        #
+        # datos = {
+        #     "path": path_dropbox,
+        # }
+        #
+        # # Haces tu petición POST a la API de Dropbox
+        # respuesta = requests.post(uri, headers=cabeceras, data=json.dumps(datos))
+        #
+        # # 4. Procesar la respuesta
+        # if respuesta.status_code == 200:
+        #     contenido_json = respuesta.json()
+        #     self._files = helper.update_listbox2(msg_listbox, self._path, contenido_json)
+        #     print("\t##### Carpeta listada con éxito #####")
+        # else:
+        #     print(f"\t##### Error {respuesta.status_code} al listar la carpeta #####")
+        #     print(respuesta.text)
+
         self._files = helper.update_listbox2(msg_listbox, self._path, contenido_json)
 
     def transfer_file(self, file_path, file_data):
