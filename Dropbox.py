@@ -1,3 +1,5 @@
+import posixpath
+
 import requests
 import urllib
 import webbrowser
@@ -126,30 +128,36 @@ class Dropbox:
         # Y PROCESAMIENTO DE LA RESPUESTA HTTP
         #############################################
 
-        # cabeceras = {
-        #     'Authorization': 'Bearer ' + self._access_token,
-        #     'Content-Type': 'application/json'
-        # }
-        #
-        # path_dropbox = "" if self._path == "/" else self._path
-        #
-        # datos = {
-        #     "path": path_dropbox,
-        # }
-        #
-        # # Haces tu petición POST a la API de Dropbox
-        # respuesta = requests.post(uri, headers=cabeceras, data=json.dumps(datos))
-        #
-        # # 4. Procesar la respuesta
-        # if respuesta.status_code == 200:
-        #     contenido_json = respuesta.json()
-        #     self._files = helper.update_listbox2(msg_listbox, self._path, contenido_json)
-        #     print("\t##### Carpeta listada con éxito #####")
-        # else:
-        #     print(f"\t##### Error {respuesta.status_code} al listar la carpeta #####")
-        #     print(respuesta.text)
+        self._path = posixpath.normpath(self._path).replace("\\", "/")
+        if self._path in ['.', '/.']:
+            self._path = "/"
 
-        self._files = helper.update_listbox2(msg_listbox, self._path, contenido_json)
+        # 2. Configuración de cabeceras
+        cabeceras = {
+            'Authorization': 'Bearer ' + self._access_token,
+            'Content-Type': 'application/json'
+        }
+
+        # 3. Configuración de la ruta para Dropbox (la raíz debe ser "")
+        path_dropbox = "" if self._path == "/" else self._path
+
+        datos = {
+            "path": path_dropbox,
+        }
+
+        # 4. Realizar la petición POST
+        respuesta = requests.post(uri, headers=cabeceras, data=json.dumps(datos))
+
+        # 5. Procesar la respuesta
+        if respuesta.status_code == 200:
+            contenido_json = respuesta.json()
+            # Esta línea actualiza tu interfaz gráfica con los archivos recibidos
+            self._files = helper.update_listbox2(msg_listbox, self._path, contenido_json)
+            print("\t##### Carpeta listada con éxito #####")
+        else:
+            print(f"\t##### Error {respuesta.status_code} al listar la carpeta #####")
+            print(respuesta.text)
+
 
     def transfer_file(self, file_path, file_data):
         print("/upload")
