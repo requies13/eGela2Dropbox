@@ -7,8 +7,8 @@ from socket import AF_INET, socket, SOCK_STREAM
 import json
 import helper
 
-app_key = '2lsfvvkg2jwwva6'
-app_secret = 'a0yuz0jqtrso1l4'
+app_key = 'yvw6a3nqm23ze9b'
+app_secret = '8lhylr3lwovusgn'
 server_addr = "localhost"
 server_port = 8070
 redirect_uri = "http://" + server_addr + ":" + str(server_port)
@@ -120,7 +120,7 @@ class Dropbox:
         self._root.destroy()
 
     def list_folder(self, msg_listbox):
-        print("/list_folder")
+        print("\n/list_folder")
         uri = 'https://api.dropboxapi.com/2/files/list_folder'
         # https://www.dropbox.com/developers/documentation/http/documentation#files-list_folder
         #############################################
@@ -147,6 +147,8 @@ class Dropbox:
 
         # 4. Realizar la petición POST
         respuesta = requests.post(uri, headers=cabeceras, data=json.dumps(datos))
+        codigo = respuesta.status_code
+        print(f"Respuesta: {codigo} {respuesta.reason}")
 
         # 5. Procesar la respuesta
         if respuesta.status_code == 200:
@@ -160,7 +162,7 @@ class Dropbox:
 
 
     def transfer_file(self, file_path, file_data):
-        print("/upload")
+        print("\n/upload")
         print("Subiendo archivo " + file_path)
         uri = 'https://content.dropboxapi.com/2/files/upload'
         # https://www.dropbox.com/developers/documentation/http/documentation#files-upload
@@ -195,9 +197,9 @@ class Dropbox:
 
 
     def delete_file(self, file_path):
-        print("/delete_file")
+        print("\n/delete_file")
         print("Borrando " + file_path)
-        uri = 'https://api.dropboxapi.com/2/files/delete'
+        # uri = 'https://api.dropboxapi.com/2/files/delete'
         uri = 'https://api.dropboxapi.com/2/files/delete_v2'
         # https://www.dropbox.com/developers/documentation/http/documentation#files-delete
 
@@ -231,7 +233,7 @@ class Dropbox:
             print(respuesta.text)
 
     def create_folder(self, path):
-        print("/create_folder")
+        print("\n/create_folder")
         print("Creando directorio " + path)
         uri = 'https://api.dropboxapi.com/2/files/create_folder_v2'
        # https://www.dropbox.com/developers/documentation/http/documentation#files-create_folder
@@ -265,3 +267,115 @@ class Dropbox:
         else:
             print(f"\t##### Error {respuesta.status_code} al crear la carpeta #####")
             print(respuesta.text)
+
+    def share_file(self, path, email):
+        print("\n/share_file")
+        print("Compartiendo fichero " + path)
+        uri = 'https://api.dropboxapi.com/2/sharing/add_file_member'
+       # https://www.dropbox.com/developers/documentation/http/documentation#sharing-add_file_member
+        #############################################
+        # RELLENAR CON CODIGO DE LA PETICION HTTP
+        # Y PROCESAMIENTO DE LA RESPUESTA HTTP
+        #############################################
+        # 2. Construir la ruta completa INCLUYENDO el nombre del archivo
+        path_dropbox = f"{path}".replace("//", "/")
+        # 3. Configuración de la ruta para Dropbox (la raíz debe ser "")
+        if not path_dropbox.startswith("/"):
+            path_dropbox = "/" + path_dropbox
+        # 4. Configuración de cabeceras y datos
+        datos = {
+            "file": path_dropbox,
+            "access_level": "viewer",
+            "members": [
+                {
+                    ".tag": "email",
+                    "email": email
+                }
+            ],
+        }
+
+        cabeceras = {
+            'Authorization': 'Bearer ' + self._access_token,
+            'Content-Type': 'application/json',
+        }
+
+        # 5. Realizar la petición POST
+        respuesta = requests.post(uri, headers=cabeceras, data=json.dumps(datos))
+
+        # 6. Procesar la respuesta
+        if respuesta.status_code == 200:
+            contenido_json = respuesta.json()
+            print("\t##### Fichero compartido con éxito #####")
+            return True
+        else:
+            print(f"\t##### Error {respuesta.status_code} al compartir el fichero #####")
+            print(respuesta.text)
+            return False
+
+    def list_shared_members(self, path):
+        print("\n/list_shared_members")
+        print("Obteniendo lista de personas compartidas el fichero " + path)
+        uri = 'https://api.dropboxapi.com/2/sharing/list_file_members'
+       # https://www.dropbox.com/developers/documentation/http/documentation#sharing-list_file_members
+        #############################################
+        # RELLENAR CON CODIGO DE LA PETICION HTTP
+        # Y PROCESAMIENTO DE LA RESPUESTA HTTP
+        #############################################
+        # 2. Construir la ruta completa INCLUYENDO el nombre del archivo
+        path_dropbox = f"{path}".replace("//", "/")
+        # 3. Configuración de la ruta para Dropbox (la raíz debe ser "")
+        if not path_dropbox.startswith("/"):
+            path_dropbox = "/" + path_dropbox
+        # 4. Configuración de cabeceras y datos
+        datos = {
+            "file": path_dropbox,
+        }
+
+        cabeceras = {
+            'Authorization': 'Bearer ' + self._access_token,
+            'Content-Type': 'application/json',
+        }
+
+        # 5. Realizar la petición POST
+        respuesta = requests.post(uri, headers=cabeceras, data=json.dumps(datos))
+        emails = []
+        # 6. Procesar la respuesta
+        if respuesta.status_code == 200:
+            contenido_json = respuesta.json()
+            for user in contenido_json.get('users', []):
+                email_user = user.get('user', '').get('email', '')
+                if email_user:
+                    emails.append(email_user)
+            print("\t##### Lista de miembros con los que se ha compartido el fichero obtenido correctamente #####")
+        else:
+            print(f"\t##### Error {respuesta.status_code} al obtener lista de miembors #####")
+            print(respuesta.text)
+
+        return emails
+
+    def revoke_access(self, path, email):
+        print(f"\n/revoke_access para {email} en {path}")
+        uri = 'https://api.dropboxapi.com/2/sharing/remove_file_member_2'
+
+        datos = {
+            "file": path,
+            "member": {
+                ".tag": "email",
+                "email": email
+            }
+        }
+
+        cabeceras = {
+            'Authorization': 'Bearer ' + self._access_token,
+            'Content-Type': 'application/json',
+        }
+
+        respuesta = requests.post(uri, headers=cabeceras, data=json.dumps(datos))
+
+        if respuesta.status_code == 200:
+            print(f"\t##### Acceso revocado con éxito a {email} #####")
+            return True
+        else:
+            print(f"\t##### Error {respuesta.status_code} al revocar acceso #####")
+            print(respuesta.text)
+            return False

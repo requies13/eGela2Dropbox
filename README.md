@@ -1,7 +1,8 @@
-Nombre: SW_2026_Practica4
+Nombre: SW\_Actividad\_4\_ICE
 
-App key: 2lsfvvkg2jwwva6
+App key: yvw6a3nqm23ze9b
 
-App secret: a0yuz0jqtrso1l4
+App secret: 8lhylr3lwovusgn
 
 url: http://localhost:8070
+

@@ -252,6 +252,7 @@ class eGela:
 
                         self._refs.append(diccionario_seccion) # Metemos en el array de diccionarios el fichero
 
+
             # INICIALIZA Y ACTUALIZAR BARRA DE PROGRESO
             # POR CADA SECCIÓN AÑADIDO EN self._refs
             progress_step = float(100.0 / NUMERO_DE_SECCIONES_EN_EGELA)
